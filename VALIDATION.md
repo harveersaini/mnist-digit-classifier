@@ -1,12 +1,52 @@
-# Delivery validation
+# Validation
 
-Verified in the build environment with Python 3.12, PyTorch 2.14.1+cpu, torchvision 0.29.1+cpu, NumPy 2.3.5, Pillow 12.3.0, Matplotlib 3.10.8, and pytest 9.1.1.
+## MNIST training and evaluation
 
-- Python source compilation: passed.
-- `python -m pytest -q`: **5 passed**.
-- Tested forward probabilities, state-dictionary checkpoint round trips, input preprocessing, blank inputs, a training update, metric counts, and drawing/prediction/clear callbacks with a headless Matplotlib canvas.
-- Synthetic-data integration: training, evaluation, JSON reports, learning curves, confusion matrix, and mistake plots verified.
-- Full real-MNIST training/evaluation: **not completed**. The dataset download stalled in this environment. No trained weights or benchmark accuracy are included.
-- Native desktop appearance and mouse interaction still require a local graphical session. Callback tests exercise functionality, not physical desktop rendering.
+Successfully trained and evaluated locally on macOS using Apple's MPS backend.
 
-The synthetic checks confirm software paths, not learned digit recognition. To finish validating the project locally, run the README's small MNIST smoke check, then a full training/evaluation run and the drawing app. Keep your actual results and dependency versions.
+- Training images: 55,000
+- Validation images: 5,000
+- Training epochs: 5
+- Best checkpoint: epoch 5, selected using validation accuracy
+- Best validation accuracy: 98.90%
+- Test images: 10,000 from the official MNIST test set
+- Test accuracy: **99.12%**
+- Test macro F1: **0.9911**
+
+| Epoch | Training loss | Validation loss | Validation accuracy |
+| --- | --- | --- | --- |
+| 1 | 0.1976 | 0.0926 | 97.06% |
+| 2 | 0.0724 | 0.0550 | 98.50% |
+| 3 | 0.0522 | 0.0453 | 98.74% |
+| 4 | 0.0415 | 0.0431 | 98.82% |
+| 5 | 0.0348 | 0.0405 | 98.90% |
+
+The selected checkpoint was saved to `outputs/best.pt`.
+Evaluation completed successfully and saved reports to `outputs/`.
+
+### Commands
+
+```bash
+python3 train.py --epochs 5
+python3 evaluate.py
+```
+
+## Automated checks
+
+Five tests passed in a separate Python 3.12 CPU build environment.
+These checks covered:
+
+- Output probability normalization and checkpoint loading.
+- Image preprocessing, centering, and blank-input handling.
+- Training parameter updates and evaluation metric accounting.
+- Drawing, prediction, and clearing callbacks using a headless canvas.
+
+Synthetic-data integration also verified JSON reports, learning curves,
+confusion matrices, and misclassification plots.
+
+## Limitations
+
+The reported accuracy measures performance on MNIST test images.
+It does not measure accuracy on mouse drawings, photographs, or other
+datasets. Native desktop interaction has not yet been documented as
+manually verified.
