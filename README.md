@@ -1,36 +1,56 @@
 # MNIST Digit Classifier
 
-A PyTorch computer vision project that trains a convolutional neural network to classify handwritten digits (0–9), evaluates its errors, and lets you draw digits in a desktop interface.
+A handwritten-digit recognition project built with Python and PyTorch. It trains a convolutional neural network to recognize digits from 0–9 and includes a desktop interface for drawing a digit and viewing the model’s predictions.
 
-Reconstructed from my project screenshots, with an expanded training and evaluation workflow. The CNN follows the established PyTorch MNIST example; this is an applied learning project rather than a novel architecture. See [SOURCES.md](SOURCES.md) for attribution and [PROJECT_GUIDE.md](PROJECT_GUIDE.md) for an explanation of the code.
+The model achieved **99.12% accuracy on 10,000 held-out MNIST test images** after five training epochs.
+
+## Results
+
+| Metric | Result |
+| --- | --- |
+| Test accuracy | **99.12%** |
+| Macro F1 | **0.9911** |
+| Best validation accuracy | **98.90%** |
+| Training / validation images | 55,000 / 5,000 |
+| Test images | 10,000 |
+| Training epochs | 5 |
+| Training device | Apple MPS |
+
+The checkpoint was selected using validation accuracy, then evaluated separately on the official MNIST test set. These results measure performance on MNIST images; accuracy on drawings made in the interface has not been measured separately.
+
+## About the project
+
+I used this project to practice the full workflow of an image classification system: preparing data, training a model, evaluating its mistakes, saving a checkpoint, and using it for interactive predictions.
+
+The CNN follows the established PyTorch MNIST example. The project combines that foundation with a modular training and evaluation workflow, image preprocessing, visual reports, and a drawing interface. Tutorial sources and AI-assisted reconstruction are acknowledged in [SOURCES.md](SOURCES.md).
 
 ## Features
 
-- Two convolutional layers, max pooling, dropout, and fully connected classification.
-- Seeded 55,000/5,000 training/validation split; checkpoint selection uses validation accuracy.
-- Separate evaluation on the official 10,000-image test set.
-- JSON metrics, per-digit precision/recall/F1, a confusion matrix, learning curves, and example mistakes.
-- PNG/JPG prediction with cropping, resizing, centering, and optional polarity inversion.
-- Matplotlib drawing canvas with a probability chart and blank-canvas handling.
-- Automatic CPU/CUDA/Apple Silicon MPS selection, tests, and GitHub Actions.
+- **Model training:** CNN with convolutional layers, max pooling, dropout, and fully connected layers.
+- **Validation-based checkpoint selection:** saves the model with the highest validation accuracy.
+- **Error analysis:** per-digit precision, recall, F1 scores, confusion matrix, and examples of misclassified images.
+- **Training visualization:** plots training and validation loss and accuracy.
+- **Interactive predictions:** draw a digit in a Matplotlib window and view probabilities for all ten classes.
+- **Image prediction:** classify an isolated digit from a PNG or JPG.
+- **Device support:** automatic selection of CPU, NVIDIA CUDA, or Apple MPS.
 
-## Setup
+## Getting started
 
-Use Python 3.11 or 3.12 in a virtual environment. An internet connection is needed to install dependencies and download MNIST the first time. No pretrained model is bundled: train one before running prediction or the drawing app.
+Use a Python environment with compatible PyTorch and torchvision installations. The project passed functional tests under Python 3.12; the local macOS training run used Python 3.14.
 
-From the extracted project folder:
+From the project folder, create a virtual environment:
 
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 ```
 
-Activate on macOS/Linux:
+Activate it on macOS or Linux:
 
 ```bash
 source .venv/bin/activate
 ```
 
-Activate in Windows PowerShell:
+On Windows PowerShell:
 
 ```powershell
 .venv\Scripts\Activate.ps1
@@ -40,135 +60,127 @@ Install dependencies:
 
 ```bash
 python -m pip install --upgrade pip
-python -m pip install -r requirements-dev.txt
+python -m pip install -r requirements.txt
 ```
 
-For CPU-only Linux/Windows installations, install the matched PyTorch pair first:
+For a CUDA-specific installation, use the instructions on the [PyTorch website](https://pytorch.org/get-started/locally/).
 
-```bash
-python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-python -m pip install -r requirements-dev.txt
-```
+The first training run downloads MNIST. A trained checkpoint is not included in the repository.
 
-For CUDA-specific builds, follow the [official PyTorch installer](https://pytorch.org/get-started/locally/). These requirements specify compatible version ranges; they are not an exact environment lock. After a successful run, record your environment with `python -m pip freeze > environment-lock.txt`.
-
-## Train, evaluate, and draw
+## Train and evaluate
 
 ```bash
 python train.py --epochs 5
 python evaluate.py
+```
+
+Training saves the best checkpoint to `outputs/best.pt`. Evaluation saves metrics and visual reports to `outputs/`.
+
+| Output | Contents |
+| --- | --- |
+| `best.pt` | Selected model checkpoint and training configuration |
+| `history.json` | Training and validation metrics by epoch |
+| `test_metrics.json` | Test metrics and confusion matrix |
+| `learning_curves.png` | Training and validation curves |
+| `confusion_matrix.png` | Predictions compared with true labels |
+| `misclassified.png` | Up to 25 test errors in dataset order |
+
+To change the training configuration:
+
+```bash
+python train.py --epochs 8 --batch-size 128 --seed 42 --output-dir outputs/experiment
+```
+
+Use a different output directory for each experiment to preserve earlier results. Training starts a new run; resuming training from a checkpoint is not implemented.
+
+## Draw a digit
+
+After training, launch the desktop interface:
+
+```bash
 python app.py
 ```
 
-Training downloads MNIST to `data/`. It saves the best validation checkpoint to `outputs/best.pt`. Evaluation loads that checkpoint and writes reports. The drawing app opens a local desktop window: draw one large digit, click **Predict**, then **Clear** to start again. Test accuracy and handwritten-canvas accuracy are different measures.
+Draw one digit, click **Predict**, and inspect the probability chart. Click **Clear** to try another digit.
 
-A short pipeline check (not a useful final model):
-
-```bash
-python train.py --epochs 1 --train-limit 512 --device cpu --output-dir outputs/smoke
-python evaluate.py --checkpoint outputs/smoke/best.pt --output-dir outputs/smoke --device cpu
-```
-
-Evaluate the final checkpoint only after choosing your training configuration using validation results. Repeatedly selecting configurations using test results makes the test score less independent.
-
-Other training options:
-
-```bash
-python train.py --epochs 8 --batch-size 128 --lr 1.0 --seed 42 --device cpu
-```
-
-`--device` accepts `auto`, `cpu`, `cuda`, or `mps`; explicit unavailable devices raise an error. Output directories are relative to the working directory. Use separate `--output-dir` values for experiments so you preserve earlier results. Training starts a new run; checkpoint resume is not implemented.
+The interface needs a local graphical environment. If PyCharm’s plot window does not support interaction, run the command in an external terminal.
 
 ## Predict an image
 
-For a bright digit on black:
+For a bright digit on a black background:
 
 ```bash
 python predict.py digit.png --save-processed processed.png
 ```
 
-For dark ink on white:
+For dark ink on a white background:
 
 ```bash
 python predict.py digit.png --invert --save-processed processed.png
 ```
 
-Use one isolated handwritten digit on a plain background. Preprocessing crops foreground pixels, scales the longest side to 20 pixels, places it in a 28×28 frame, centers its intensity distribution, and applies the same normalization as training. It does not segment multiple digits or remove complex photo backgrounds. Inspect `processed.png` if predictions seem wrong.
+Preprocessing crops the foreground, resizes the digit to fit within a 20×20 area, centers it in a 28×28 image, and applies the training normalization.
 
-Scores are softmax probabilities, not calibrated guarantees of correctness. The model always chooses one of ten digits for nonblank input; letters or scribbles can still receive high scores.
+Use one isolated digit on a plain background. The optional processed image helps diagnose input problems.
 
-## PyCharm
+## Model architecture
 
-1. Extract this archive and open **mnist-digit-classifier** as a project.
-2. Set the interpreter to a Python 3.11/3.12 virtual environment under **Settings → Project → Python Interpreter** (the menu label may vary).
-3. Open PyCharm's terminal in the project root and install the requirements above.
-4. Run `train.py`, then `evaluate.py`, then `app.py`. Defaults work without arguments.
-5. To change epochs, add `--epochs 5` in the train run configuration's **Parameters** field. Set **Working directory** to the project root.
-6. If the drawing window is embedded or unresponsive, disable Matplotlib plots in PyCharm's tool window or run `python app.py` in an external terminal. A desktop GUI backend is required; `Agg` cannot display the drawing window. If necessary, install a supported GUI backend such as PyQt6 in your environment and select `QtAgg` using the `MPLBACKEND` environment variable for the app.
+| Layer | Output shape, excluding batch dimension |
+| --- | --- |
+| Grayscale input | 1 × 28 × 28 |
+| 3×3 convolution + ReLU | 32 × 26 × 26 |
+| 3×3 convolution + ReLU | 64 × 24 × 24 |
+| 2×2 max pooling + dropout | 64 × 12 × 12 |
+| Flatten | 9,216 |
+| Fully connected + ReLU + dropout | 128 |
+| Fully connected + log-softmax | 10 |
 
-Avoid naming files `torch.py`, `numpy.py`, or `matplotlib.py`, which can shadow the installed packages.
+Training uses negative log-likelihood loss, the Adadelta optimizer, and a StepLR learning-rate scheduler.
 
-## Files
+## Project structure
 
 | File | Purpose |
 | --- | --- |
-| `model.py` | CNN architecture and forward pass |
-| `data.py` | Normalization, train/validation split, test data |
-| `engine.py` | Training epoch and evaluation metrics |
-| `train.py` | Training CLI, scheduler, checkpoint selection |
-| `evaluate.py` | Held-out test evaluation and reports |
-| `plots.py` | Saved learning, confusion, and error plots |
-| `preprocess.py` | Single-digit preprocessing |
-| `predict.py` | Image prediction CLI |
-| `app.py` | Interactive drawing interface |
-| `utils.py` | Seeds, device selection, JSON, checkpoint loading |
-| `tests/` | Offline functional checks using synthetic tensors |
+| `model.py` | CNN architecture |
+| `data.py` | Dataset loading, splitting, and normalization |
+| `engine.py` | Training and evaluation functions |
+| `train.py` | Training command and checkpoint selection |
+| `evaluate.py` | Test-set evaluation |
+| `plots.py` | Learning curves and error visualizations |
+| `preprocess.py` | Input preparation for handwritten digits |
+| `predict.py` | Image prediction command |
+| `app.py` | Desktop drawing interface |
+| `utils.py` | Device selection, seeds, checkpoints, and JSON output |
 
-## Results and reproducibility
+## Testing and reproducibility
 
-No final MNIST benchmark result is claimed in this template. Run the full training and evaluation commands and use **your measured values** from `outputs/test_metrics.json`.
-
-| Measure | Your final run |
-| --- | --- |
-| Test accuracy | Fill after evaluation |
-| Macro F1 | Fill after evaluation |
-| Selected epoch | Fill from checkpoint/report |
-| Seed / epochs / batch size | Record your settings |
-| Device and runtime | Record your hardware and elapsed time |
-
-Save the configuration, dependency versions, and reports for any result you publish. Seeds make reruns easier to compare, but exact numerical agreement across devices or dependency versions is not guaranteed. If publishing plots, copy selected outputs into a `results/` directory and update this README to link them. Do not report the small smoke run as final model performance.
-
-## Tests
+Install the development dependencies and run the tests:
 
 ```bash
+python -m pip install -r requirements-dev.txt
 python -m pytest -q
 ```
 
-Tests do not download MNIST. They check probability normalization, checkpoint round trips, image polarity/centering, blank inputs, parameter updates, and metric accounting. The GitHub workflow runs these checks on CPU.
+Five functional tests passed in the CPU build environment. They cover checkpoint loading, probability normalization, preprocessing, blank inputs, parameter updates, metric accounting, and drawing-interface callbacks.
 
-## GitHub
-
-Create an empty GitHub repository (without an initial README), then run these commands inside this project folder. Replace the example URL:
+Training uses seeded data splitting and random number generators. Exact results can still vary across hardware and dependency versions. To record an environment:
 
 ```bash
-git init
-git add .
-git commit -m "Add MNIST training, evaluation, and drawing interface"
-git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/mnist-digit-classifier.git
-git push -u origin main
+python -m pip freeze > environment-lock.txt
 ```
 
-The `.gitignore` excludes downloaded data, virtual environments, checkpoints, and generated outputs. Share a model through a GitHub Release if you choose; document which code/config produced it. Select a repository license before publishing if you want to grant reuse rights. Third-party assets retain their own licenses.
+See [VALIDATION.md](VALIDATION.md) for the validation record.
 
-## Resume wording
+## Limitations
 
-After running, reviewing, and understanding the project, adapt this bullet to match your work:
+MNIST images are small, centered, and standardized. Mouse drawings and photographs can differ substantially in stroke thickness, position, and background.
 
-> Built a PyTorch handwritten-digit classification pipeline with CNN training, validation-based checkpoint selection, per-digit error analysis, and an interactive drawing interface.
+The model classifies nonblank inputs into one of ten digit classes. It does not detect whether an image is actually a digit, recognize multiple digits, or interpret its probability scores as calibrated certainty.
 
-After measuring final performance, you can add “achieving **X% accuracy on 10,000 held-out MNIST images**.” Replace X only with your measured result. Credit tutorial foundations and AI-assisted reconstruction where relevant. This project demonstrates image classification; it does not establish demographic fairness or production readiness.
+Potential next steps include comparing against a simpler baseline, testing data augmentation, and measuring performance on a separate collection of handwritten inputs.
 
-## Limitations and next experiments
+## Acknowledgments
 
-MNIST contains standardized grayscale digits. Mouse-drawn digits and phone photos differ in stroke shape, scale, background, and placement. Test those separately. Useful extensions include comparing against a linear baseline, evaluating several seeds, testing rotation/translation robustness on a validation set, adding training augmentation, and measuring confidence calibration. Complete and document an experiment before claiming it as a feature.
+This project builds on the [official PyTorch MNIST example](https://github.com/pytorch/examples/tree/main/mnist) and uses the MNIST dataset by Yann LeCun, Corinna Cortes, and Christopher J. C. Burges.
+
+See [SOURCES.md](SOURCES.md) for attribution and development context.
