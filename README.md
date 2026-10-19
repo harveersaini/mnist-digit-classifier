@@ -28,7 +28,7 @@ The checkpoint was selected using validation accuracy, then evaluated separately
 
 I used this project to practice the full workflow of an image classification system: preparing data, training a model, evaluating its mistakes, saving a checkpoint, and using it for interactive predictions.
 
-The CNN follows the established PyTorch MNIST example. The project combines that foundation with a modular training and evaluation workflow, image preprocessing, visual reports, and a drawing interface. Tutorial sources and AI-assisted reconstruction are acknowledged in [SOURCES.md](SOURCES.md).
+The CNN follows the established PyTorch MNIST example. The project combines that foundation with a modular training and evaluation workflow, image preprocessing, visual reports, and a drawing interface. 
 
 ## Features
 
