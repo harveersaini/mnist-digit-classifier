@@ -4,6 +4,12 @@ A handwritten-digit recognition project built with Python and PyTorch. It trains
 
 The model achieved **99.12% accuracy on 10,000 held-out MNIST test images** after five training epochs.
 
+## Demo
+
+![Drawing interface correctly classifying a handwritten 3](demo.png)
+
+Draw a digit and view the model’s predicted probabilities across all ten classes.
+
 ## Results
 
 | Metric | Result |
