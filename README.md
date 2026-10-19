@@ -1,6 +1,6 @@
 # MNIST Digit Classifier
 
-A handwritten-digit recognition project built with Python and PyTorch. It trains a convolutional neural network to recognize digits from 0–9 and includes a desktop interface for drawing a digit and viewing the model’s predictions.
+A PyTorch computer vision project that trains a convolutional neural network to classify handwritten digits (0–9), evaluates its errors, and lets you draw digits in a desktop interface.
 
 The model achieved **99.12% accuracy on 10,000 held-out MNIST test images** after five training epochs.
 
